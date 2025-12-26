@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://quadjr.github.io/aframe-gaussian-splatting/index.js"></script>
+
+    <!-- GAZE LOCOMOTION -->
+    <script>
+        AFRAME.registerComponent('gaze-locomotion', {
+  schema: { speed: {type: 'number', default: 1.0} },
+
+  init: function () {
+    // apanha a camera real dentro do rig
+    this.cameraEl = this.el.querySelector('[camera]');
+  },
+
+  tick: function (time, deltaTime) {
+    if (!this.cameraEl) return;
+
+    const direction = new THREE.Vector3();
+    this.cameraEl.object3D.getWorldDirection(direction);
+
+    // zona neutra: só anda se estiver quase horizontal
+    if (direction.y > -0.1 && direction.y < 0.1) {
+      const move = direction.multiplyScalar(this.data.speed * (deltaTime / 1000));
+      this.el.object3D.position.add(move);
+    }
+  }
+});
+
+    </script>
+  </head>
+
+  <body>
+    <a-scene renderer="antialias: false" stats vr-mode-ui="enabled: true">
+
+      <!-- Camera Rig with Gaze Locomotion -->
+      <a-entity id="rig" position="0 1.6 0" gaze-locomotion="speed: 1.2">
+        <a-entity camera
+                  look-controls="magicWindowTrackingEnabled: true"
+                  cursor="fuse: true; fuseTimeout: 800; raycaster: objects: .interactable"
+                  position="0 0 0">
+        </a-entity>
+      </a-entity>
+
+      <!-- Demo objects (marcados como interactable) -->
+      <a-entity class="interactable"
+                position="0 1.6 -2.0"
+                animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true">
+        <a-sphere position="0 0 0.5" radius="0.5" color="#EF2D5E"></a-sphere>
+        <a-sphere position="0 0 -0.5" radius="0.5" color="#EF2D5E"></a-sphere>
+      </a-entity>
+
+      <a-box id="cutout-box" visible="false"
+             scale="4.17 2.95 3.89"
+             position="0.8145 1.73322 -2.35981">
+      </a-box>
+
+      <!-- SPLAT LOCAL (não precisa de classe interactable) -->
+      <a-entity gaussian_splatting="src: 1766688875374-dan1409.splat;"
+                scale="1 1 1"
+                rotation="0 0 0"
+                position="0 0.8 -2">
+
+                <a-entity gaussian_splatting="src: 1766688875374-dan1409.splat" scale="0.1 0.1 0.1" rotation="" position="0 0.8 -2" visible="">
+      </a-entity>
+                
+      </a-entity>
+
+      <!-- SPLAT ONLINE -->
+      <a-entity gaussian_splatting="src: https://huggingface.co/quadjr/aframe-gaussian-splatting/resolve/main/luma-seal.splat;"
+                scale="1 1 1"
+                rotation="0 90 0"
+                position="10 0.8 -2">
+      </a-entity>
+
+      <a-sky color="#000"></a-sky>
+    </a-scene>
+  </body>
+</html>
